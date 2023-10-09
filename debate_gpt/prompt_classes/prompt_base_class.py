@@ -3,6 +3,7 @@ from typing import Optional
 
 import openai
 import tiktoken
+from openai.openai_object import OpenAIObject
 
 
 class PromptBaseClass:
@@ -43,7 +44,7 @@ class PromptBaseClass:
 
     def prompt_chat_gpt(
         self, messages: list[str], max_tokens: Optional[int] = 16
-    ) -> openai.openai_object.OpenAIObject:
+    ) -> OpenAIObject:
         return openai.ChatCompletion.create(
             model=self._model, messages=messages, max_tokens=max_tokens
         )
