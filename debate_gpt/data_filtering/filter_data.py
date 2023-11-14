@@ -5,7 +5,7 @@ def filter_by_rounds(
     rounds_df: pd.DataFrame,
     debates_df: pd.DataFrame,
     percentage: float = 25,
-    min_tokens: int = 500,
+    min_tokens: int = 300,
 ) -> pd.DataFrame:
     """Return `debates_df` filtered by the following rules: only debates with at least
     `min_tokens` total are kept, only debates where the debater who speaks the most does
@@ -54,7 +54,7 @@ def filter_by_votes(
     votes_df: pd.DataFrame,
     debates_df: pd.DataFrame,
     min_num_votes: int = 3,
-    min_num_flipped_votes: int = 1,
+    min_num_flipped_votes: int = 0,
 ) -> pd.DataFrame:
     """Return `debates_df` filtered by qualities of the votes in `votes_df`: only
     debates with at least `min_num_votes` votes are kept and only debates with at least
@@ -112,3 +112,9 @@ def filter_votes_by_users(
     votes_df = votes_df[votes_df.num_demographics >= min_num_demographics]
 
     return votes_df
+
+
+def add_propositions(
+    debates_df: pd.DataFrame, propositions_df: pd.DataFrame, path_to_file: str
+) -> None:
+    propositions_df.merge(debates_df, on="debate_id").to_json(path_to_file)

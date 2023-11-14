@@ -39,7 +39,7 @@ def main():
     rounds_df = create_rounds_df(debates_df)
     comments_df = create_comments_df(debates_df)
     debates_df = debates_df[
-        ["debate_id", "pro_user_id", "con_user_id", "title", "category"]
+        ["debate_id", "start_date", "pro_user_id", "con_user_id", "title", "category"]
     ]
 
     users_df.to_json("data/processed_data/users_df.json")

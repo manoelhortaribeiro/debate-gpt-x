@@ -17,7 +17,6 @@ def create_debates_df(path_to_data: str) -> pd.DataFrame:
             "url",
             "forfeit_label",
             "forfeit_side",
-            "start_date",
             "update_date",
             "voting_style",
             "participant_1_link",
