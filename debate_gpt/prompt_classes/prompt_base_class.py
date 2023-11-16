@@ -25,8 +25,8 @@ class PromptBase(ABC):
         voter_results: bool = True,
         max_gpt_response_tokens: Optional[int] = 2,
         timeout: int = 120,
-        context_window: int = 4097,
-        model: str = "gpt-3.5-turbo",
+        context_window: int = 16385,
+        model: str = "gpt-3.5-turbo-1106",
     ) -> None:
         """This is the abstract base class for all prompting of OpenAI models for the
         debate-gpt project.
