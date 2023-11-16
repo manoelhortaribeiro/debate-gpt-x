@@ -346,7 +346,7 @@ class PromptBase(ABC):
         """Return a string containing all the demographic information of user `voter_id`
         in the following format: Label: Value, Label: Value
         """
-        voter_info = self.users_df.loc[voter_id][self._user_columns]
+        voter_info = self.users_df.loc[voter_id][self._demographic_columns]
         voter_info = voter_info[~voter_info.isna()]
         voter_info = [
             col.replace("_", " ").title() + ": " + voter_info[col]
@@ -389,7 +389,7 @@ class PromptBase(ABC):
     def calculate_max_user_info_tokens(self) -> int:
         """Return the maximum number of tokens that may be used in user demographics."""
         message = []
-        for col in self._user_columns:
+        for col in self._demographic_columns:
             possible_column_values = list(self.users_df[col].unique())
             max_count = 0
             max_value = None
