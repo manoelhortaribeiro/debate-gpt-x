@@ -2,7 +2,7 @@ from typing import Optional
 
 import pandas as pd
 
-from debate_gpt.prompt_classes.prompt_base_class import PromptBase
+from debate_gpt.prompt_classes.prompt_base import PromptBase
 
 
 class WhoWon(PromptBase):

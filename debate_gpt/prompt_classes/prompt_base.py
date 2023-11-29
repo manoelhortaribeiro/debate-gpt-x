@@ -25,7 +25,6 @@ class PromptBase(ABC):
         voter_results: bool = True,
         max_gpt_response_tokens: Optional[int] = 2,
         timeout: int = 120,
-        context_window: int = 16385,
         model: str = "gpt-3.5-turbo-1106",
     ) -> None:
         """This is the abstract base class for all prompting of OpenAI models for the
@@ -51,7 +50,7 @@ class PromptBase(ABC):
 
         # set model info
         self._model = model
-        self._context_window = context_window
+        self._context_window = self._get_model_context_window()
         self._timeout = timeout
         self._encoding = tiktoken.encoding_for_model(model)
 
@@ -449,29 +448,61 @@ class PromptBase(ABC):
         """
         return len(self._encoding.encode(message))
 
-    def calculate_cost_input(self, num_tokens: int) -> float:
+    def _get_model_context_window(self) -> int:
+        """Return the context window of the model in use. These can be found at
+        https://platform.openai.com/docs/models and should be updated regularly should
+        the context windows change.
+
+        Last update: Nov 29, 2023.
+        """
+        if self._model == "gpt-3.5-turbo-1106":
+            return 16385
+        elif (self._model == "gpt-3.5-turbo-0613") | (self._model == "gpt-3.5-turbo"):
+            # gpt-3.5-turbo currently points to gpt-3.5-turbo-0613. Will point to
+            # gpt-3.5-turbo-1106 starting Dec 11, 2023
+            return 4096
+        elif self._model == "gpt-4":
+            return 8192
+        elif self._model == "gpt-4-32k":
+            return 32768
+        else:
+            raise ValueError(f"Model {self._model} context window unknown.")
+
+    def _calculate_cost_input(self, num_tokens: int) -> float:
         """Return the cost of inputting `num_tokens` into the model. This should be
         updated regularly according to https://openai.com/pricing. As new models are
         released, their pricing information should be added to this function.
 
-        Last update: Nov 14, 2023.
+        Last update: Nov 29, 2023.
         """
-        if self._model == "gpt-3.5-turbo":
+        if (self._model == "gpt-3.5-turbo-1106") | (self._model == "gpt-3.5-turbo"):
+            # gpt-3.5-turbo currently points to gpt-3.5-turbo-0613. Will point to
+            # gpt-3.5-turbo-1106 starting Dec 11, 2023
             cost = (num_tokens * 0.001) / 1000
+        elif self._model == "gpt-4":
+            cost = (num_tokens * 0.03) / 1000
+        elif self._model == "gpt-4-32k":
+            cost = (num_tokens * 0.06) / 1000
         else:
             raise ValueError(f"Model {self._model} cost unknown.")
 
         return cost
 
-    def calculate_cost_output(self, num_tokens: int) -> float:
+    def _calculate_cost_output(self, num_tokens: int) -> float:
         """Return the cost of outputting `num_tokens` from the model. This should be
         updated regularly according to https://openai.com/pricing. As new models are
         released, their pricing information should be added to this function.
 
-        Last update: Nov 14, 2023.
+        Last update: Nov 29, 2023.
         """
-        if self._model == "gpt-3.5-turbo":
+        if (self._model == "gpt-3.5-turbo-1106") | (self._model == "gpt-3.5-turbo"):
+            # gpt-3.5-turbo currently points to gpt-3.5-turbo-0613. Will point to
+            # gpt-3.5-turbo-1106 starting Dec 11, 2023
             cost = (num_tokens * 0.002) / 1000
+        elif self._model == "gpt-4":
+            cost = (num_tokens * 0.06) / 1000
+        elif self._model == "gpt-4-32k":
+            cost = (num_tokens * 0.12) / 1000
         else:
             raise ValueError(f"Model {self._model} cost unknown.")
 
