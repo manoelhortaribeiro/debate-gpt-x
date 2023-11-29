@@ -448,7 +448,7 @@ class PromptBase(ABC):
         """
         return len(self._encoding.encode(message))
 
-    def _get_model_context_window(self) -> int:
+    def get_model_context_window(self) -> int:
         """Return the context window of the model in use. These can be found at
         https://platform.openai.com/docs/models and should be updated regularly should
         the context windows change.
@@ -468,7 +468,7 @@ class PromptBase(ABC):
         else:
             raise ValueError(f"Model {self._model} context window unknown.")
 
-    def _calculate_cost_input(self, num_tokens: int) -> float:
+    def calculate_cost_input(self, num_tokens: int) -> float:
         """Return the cost of inputting `num_tokens` into the model. This should be
         updated regularly according to https://openai.com/pricing. As new models are
         released, their pricing information should be added to this function.
@@ -488,7 +488,7 @@ class PromptBase(ABC):
 
         return cost
 
-    def _calculate_cost_output(self, num_tokens: int) -> float:
+    def calculate_cost_output(self, num_tokens: int) -> float:
         """Return the cost of outputting `num_tokens` from the model. This should be
         updated regularly according to https://openai.com/pricing. As new models are
         released, their pricing information should be added to this function.
