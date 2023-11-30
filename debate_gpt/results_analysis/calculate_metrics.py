@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import scipy.stats
+from sklearn.metrics import confusion_matrix
 
 
 def calculate_fleiss_kappa(
@@ -126,3 +127,26 @@ def calculate_cohens_kappa(
     cohens_lappa_ub = cohens_kappa + z_critical * standard_error
 
     return cohens_kappa, cohens_kappa_lb, cohens_lappa_ub
+
+
+def get_confusion_matrix(
+    df: pd.DataFrame,
+    true_column: str,
+    predicted_column: str,
+    labels: list[str] = ["Pro", "Con", "Tie"],
+) -> np.ndarray:
+    confusion = confusion_matrix(df[true_column], df[predicted_column], labels=labels)
+
+    return confusion
+
+
+def calculate_accuracy(confusion_matrix: np.ndarray) -> float:
+    return confusion_matrix.diagonal().sum() / confusion_matrix.sum()
+
+
+def calculate_precisions(confusion_matrix: np.ndarray) -> list[float]:
+    return confusion_matrix.diagonal() / confusion_matrix.sum(axis=0)
+
+
+def calculate_recalls(confusion_matrix: np.ndarray) -> list[float]:
+    return confusion_matrix.diagonal() / confusion_matrix.sum(axis=1)
