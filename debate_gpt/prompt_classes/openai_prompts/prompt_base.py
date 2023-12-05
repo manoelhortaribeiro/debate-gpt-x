@@ -259,13 +259,7 @@ class PromptBase(ABC):
             (self.votes_df.debate_id == debate_id)
             & (self.votes_df.voter_id == voter_id)
         ]
-
-        if row[column].values[0] == row.pro_user_id.values[0]:
-            return "Pro"
-        elif row[column].values[0] == row.con_user_id.values[0]:
-            return "Con"
-        else:
-            return "Tie"
+        return row[column].values[0]
 
     def create_demographics_role_text(self, voter_id: str) -> str:
         """Craft system role text for demographic information for user `voter_id`."""
