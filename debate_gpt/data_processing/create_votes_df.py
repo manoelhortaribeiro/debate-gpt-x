@@ -91,10 +91,10 @@ def check_votes(row: pd.Series) -> bool:
 def winner(row: pd.Series, col: str) -> str:
     """Return the id of the user that received the vote in `row` for category `col`."""
     if row["pro_vote_" + col]:
-        return row.pro_user_id
+        return "Pro"
     if row["con_vote_" + col]:
-        return row.con_user_id
-    return "tie"
+        return "Con"
+    return "Tie"
 
 
 def preprocess_votes_df(votes_df: pd.DataFrame) -> pd.DataFrame:

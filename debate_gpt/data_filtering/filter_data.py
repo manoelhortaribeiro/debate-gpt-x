@@ -68,22 +68,22 @@ def filter_by_votes(
                 lambda x: (x.flipped).sum()
             ),
             "num_pro_agreed_before": votes_df.groupby(["debate_id"]).apply(
-                lambda x: (x.agreed_before == x.pro_user_id).sum()
+                lambda x: (x.agreed_before == "Pro").sum()
             ),
             "num_con_agreed_before": votes_df.groupby(["debate_id"]).apply(
-                lambda x: (x.agreed_before == x.con_user_id).sum()
+                lambda x: (x.agreed_before == "Con").sum()
             ),
             "num_tie_agreed_before": votes_df.groupby(["debate_id"]).apply(
-                lambda x: (x.agreed_before == "tie").sum()
+                lambda x: (x.agreed_before == "Tie").sum()
             ),
             "num_pro_agreed_after": votes_df.groupby(["debate_id"]).apply(
-                lambda x: (x.agreed_after == x.pro_user_id).sum()
+                lambda x: (x.agreed_after == "Pro").sum()
             ),
             "num_con_agreed_after": votes_df.groupby(["debate_id"]).apply(
-                lambda x: (x.agreed_after == x.con_user_id).sum()
+                lambda x: (x.agreed_after == "Con").sum()
             ),
             "num_tie_agreed_after": votes_df.groupby(["debate_id"]).apply(
-                lambda x: (x.agreed_after == "tie").sum()
+                lambda x: (x.agreed_after == "Tie").sum()
             ),
         }
     )

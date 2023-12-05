@@ -14,6 +14,7 @@ from debate_gpt.data_processing.create_votes_df import create_votes_df  # noqa: 
 def main():
     PATH_TO_RAW_USERS_DATA = "data/raw_data/users.json"
     PATH_TO_RAW_DEBATES_DATA = "data/raw_data/debates.json"
+
     demographic_columns = [
         "birthday",
         "education",
