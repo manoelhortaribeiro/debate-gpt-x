@@ -18,7 +18,7 @@ class WhoWon(PromptBase):
         demographic_map: Optional[dict[str, str]] = None,
         max_gpt_response_tokens: Optional[int] = 1000,
         timeout: int = 120,
-        context_window: int = 16385,
+        source: str = "openai",
         model: str = "gpt-3.5-turbo-1106",
     ) -> None:
         super().__init__(
@@ -32,7 +32,7 @@ class WhoWon(PromptBase):
             voter_results=False,
             max_gpt_response_tokens=max_gpt_response_tokens,
             timeout=timeout,
-            context_window=context_window,
+            source=source,
             model=model,
         )
 

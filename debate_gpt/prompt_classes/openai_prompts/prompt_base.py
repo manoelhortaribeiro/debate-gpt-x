@@ -9,7 +9,6 @@ import openai
 import pandas as pd
 import tiktoken
 import tqdm
-from openai.openai_object import OpenAIObject
 
 
 class PromptBase(ABC):
@@ -25,6 +24,7 @@ class PromptBase(ABC):
         voter_results: bool = True,
         max_gpt_response_tokens: Optional[int] = 2,
         timeout: int = 120,
+        source: str = "openai",
         model: str = "gpt-3.5-turbo-1106",
     ) -> None:
         """This is the abstract base class for all prompting of OpenAI models for the
@@ -49,15 +49,25 @@ class PromptBase(ABC):
         self._rounds_df = rounds_df
 
         # set model info
+        self._source = source
         self._model = model
-        self._context_window = self._get_model_context_window()
+        self._context_window = self.get_model_context_window()
         self._timeout = timeout
-        self._encoding = tiktoken.encoding_for_model(model)
+        if (model == "llama") | (model == "mistral"):
+            self._encoding = tiktoken.encoding_for_model("gpt-3.5-turbo")
+        else:
+            self._encoding = tiktoken.encoding_for_model(model)
 
         self._max_gpt_response_tokens = max_gpt_response_tokens
 
         # set api key
-        openai.api_key = os.environ["OPENAI_API_KEY"]
+        if source == "openai":
+            openai.api_key = os.environ["OPENAI_API_KEY"]
+        else:
+            self._client = openai.OpenAI(
+                api_key="anything",
+                base_url="http://iccluster039.iccluster.epfl.ch:7736",
+            )
 
         # set user columns
         self._voter_results = voter_results
@@ -120,7 +130,7 @@ class PromptBase(ABC):
                 continue
 
             results += curr_debate_results
-            if i % 50 == 0:
+            if len(results) >= 50:
                 self.save_results_to_file(results, path_to_file)
                 results = []
 
@@ -147,7 +157,7 @@ class PromptBase(ABC):
         response = None
         while response is None:
             try:
-                response = self.prompt_chat_gpt(message, self.max_gpt_response_tokens)
+                response = self.prompt(message, self.max_gpt_response_tokens)
             except Exception as e:
                 print(e)
 
@@ -155,7 +165,7 @@ class PromptBase(ABC):
             {
                 "debate_id": debate_id,
                 "message": message,
-                "gpt_response": response["choices"][0]["message"]["content"],
+                "gpt_response": response.choices[0].message.content,
             }
         )
 
@@ -181,9 +191,7 @@ class PromptBase(ABC):
                     continue
 
                 try:
-                    response = self.prompt_chat_gpt(
-                        message, self.max_gpt_response_tokens
-                    )
+                    response = self.prompt(message, self.max_gpt_response_tokens)
                 except Exception as e:
                     print(e)
                     flag = True
@@ -194,7 +202,7 @@ class PromptBase(ABC):
                         "debate_id": debate_id,
                         "voter_id": voter_id,
                         "message": message,
-                        "gpt_response": response["choices"][0]["message"]["content"],
+                        "gpt_response": response.choices[0].message.content,
                         "agreed_before": self.get_column_vote(
                             voter_id, debate_id, "agreed_before"
                         ),
@@ -245,11 +253,15 @@ class PromptBase(ABC):
             else:
                 rounds[round_key] = {row.side: row.text}
 
-        debate = str(json.dumps(rounds))
-        if self.count_tokens(debate) >= self.max_debate_tokens:
-            return ""
+            if self.count_tokens(str(json.dumps(rounds))) >= self.max_debate_tokens:
+                break
 
-        return debate
+        debate = str(json.dumps(rounds))
+        if self.count_tokens(debate) <= self.max_debate_tokens:
+            return debate
+
+        del rounds[round_key]
+        return str(json.dumps(rounds))
 
     def get_column_vote(self, voter_id: str, debate_id: int, column: str) -> str:
         """Return either 'Pro', 'Con' or 'Tie' indicating how user `voter_id` voted on
@@ -425,11 +437,22 @@ class PromptBase(ABC):
             )
         return {"role": role, "content": message}
 
-    def prompt_chat_gpt(
+    def prompt(self, messages, max_tokens):
+        if self._source == "openai":
+            return self.prompt_chat_gpt(messages, max_tokens)
+        else:
+            return self.prompt_open_source_model(messages, max_tokens)
+
+    def prompt_open_source_model(
         self, messages: list[str], max_tokens: Optional[int] = 50
-    ) -> OpenAIObject:
+    ):
+        return self._client.chat.completions.create(
+            model="gpt-3.5-turbo", messages=messages
+        )
+
+    def prompt_chat_gpt(self, messages: list[str], max_tokens: Optional[int] = 50):
         """Prompt the OpenAI model and return the chat completions object."""
-        return openai.ChatCompletion.create(
+        return openai.chat.completions.create(
             model=self._model,
             messages=messages,
             max_tokens=max_tokens,
@@ -451,7 +474,12 @@ class PromptBase(ABC):
         """
         if self._model == "gpt-3.5-turbo-1106":
             return 16385
-        elif (self._model == "gpt-3.5-turbo-0613") | (self._model == "gpt-3.5-turbo"):
+        elif (
+            (self._model == "gpt-3.5-turbo-0613")
+            | (self._model == "gpt-3.5-turbo")
+            | (self._model == "llama")
+            | (self._model == "mistral")
+        ):
             # gpt-3.5-turbo currently points to gpt-3.5-turbo-0613. Will point to
             # gpt-3.5-turbo-1106 starting Dec 11, 2023
             return 4096
@@ -460,7 +488,7 @@ class PromptBase(ABC):
         elif self._model == "gpt-4-32k":
             return 32768
         else:
-            raise ValueError(f"Model {self._model} context window unknown.")
+            raise ValueError(f"Context window unknown for model {self._model}.")
 
     def calculate_cost_input(self, num_tokens: int) -> float:
         """Return the cost of inputting `num_tokens` into the model. This should be
