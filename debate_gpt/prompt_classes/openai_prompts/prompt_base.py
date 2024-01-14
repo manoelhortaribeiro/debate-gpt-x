@@ -53,10 +53,11 @@ class PromptBase(ABC):
         self._model = model
         self._context_window = self.get_model_context_window()
         self._timeout = timeout
-        if (model == "llama") | (model == "mistral"):
-            self._encoding = tiktoken.encoding_for_model("gpt-3.5-turbo")
-        else:
+
+        try:
             self._encoding = tiktoken.encoding_for_model(model)
+        except KeyError:
+            self._encoding = tiktoken.encoding_for_model("gpt-3.5-turbo")
 
         self._max_gpt_response_tokens = max_gpt_response_tokens
 
@@ -93,9 +94,9 @@ class PromptBase(ABC):
     def debates_df(self):
         return self._debates_df
 
-    @debates_df.setter
-    def debates_df(self, new_debates_df):
-        self._debates_df = new_debates_df
+    # @debates_df.setter
+    # def debates_df(self, new_debates_df):
+    #     self._debates_df = new_debates_df
 
     @property
     def context_window(self):
@@ -149,9 +150,7 @@ class PromptBase(ABC):
         """Return results from prompting the model for debate with id `debate_id` with
         no user personalization."""
         results = []
-        debate = self.get_debate(debate_id=debate_id)
-        if debate == "":
-            return results
+        debate, length = self.get_debate(debate_id=debate_id)
 
         message = self.create_gpt_message(debate, debate_id)
         response = None
@@ -164,6 +163,7 @@ class PromptBase(ABC):
         results.append(
             {
                 "debate_id": debate_id,
+                "debate_length": length,
                 "message": message,
                 "gpt_response": response.choices[0].message.content,
             }
@@ -176,10 +176,7 @@ class PromptBase(ABC):
         voter level personalization.
         """
         results = []
-        debate = self.get_debate(debate_id=debate_id)
-        if debate == "":
-            return results
-
+        debate, length = self.get_debate(debate_id=debate_id)
         voter_ids = list(self.votes_df[self.votes_df.debate_id == debate_id].voter_id)
 
         while len(voter_ids) != 0:
@@ -201,6 +198,7 @@ class PromptBase(ABC):
                     {
                         "debate_id": debate_id,
                         "voter_id": voter_id,
+                        "debate_length": length,
                         "message": message,
                         "gpt_response": response.choices[0].message.content,
                         "agreed_before": self.get_column_vote(
@@ -253,15 +251,21 @@ class PromptBase(ABC):
             else:
                 rounds[round_key] = {row.side: row.text}
 
-            if self.count_tokens(str(json.dumps(rounds))) >= self.max_debate_tokens:
-                break
-
         debate = str(json.dumps(rounds))
-        if self.count_tokens(debate) <= self.max_debate_tokens:
-            return debate
+        if self.count_tokens(debate) < self.max_debate_tokens:
+            return debate, "full"
 
-        del rounds[round_key]
-        return str(json.dumps(rounds))
+        rounds_number = row["round"]
+
+        while self.count_tokens(debate) >= self.max_debate_tokens:
+            try:
+                del rounds[f"Round {rounds_number}"]
+            except KeyError:
+                print("key error")
+            rounds_number -= 1
+            debate = str(json.dumps(rounds))
+
+        return debate, "trimmed"
 
     def get_column_vote(self, voter_id: str, debate_id: int, column: str) -> str:
         """Return either 'Pro', 'Con' or 'Tie' indicating how user `voter_id` voted on
@@ -437,26 +441,27 @@ class PromptBase(ABC):
             )
         return {"role": role, "content": message}
 
-    def prompt(self, messages, max_tokens):
+    def prompt(self, messages, max_tokens: int = 5):
         if self._source == "openai":
             return self.prompt_chat_gpt(messages, max_tokens)
-        else:
+        elif self._source == "open":
             return self.prompt_open_source_model(messages, max_tokens)
+        else:
+            ValueError(f"Source {self._source} unknown.")
 
     def prompt_open_source_model(
-        self, messages: list[str], max_tokens: Optional[int] = 50
+        self, messages: list[str], max_tokens: Optional[int] = 5
     ):
         return self._client.chat.completions.create(
-            model="gpt-3.5-turbo", messages=messages
+            model=self._model, messages=messages, max_tokens=max_tokens
         )
 
-    def prompt_chat_gpt(self, messages: list[str], max_tokens: Optional[int] = 50):
+    def prompt_chat_gpt(self, messages: list[str], max_tokens: Optional[int] = 5):
         """Prompt the OpenAI model and return the chat completions object."""
         return openai.chat.completions.create(
             model=self._model,
             messages=messages,
             max_tokens=max_tokens,
-            request_timeout=self._timeout,
         )
 
     def count_tokens(self, message: str) -> int:
