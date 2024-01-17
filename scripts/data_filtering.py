@@ -40,6 +40,10 @@ def main():
 
     # Create dataframe with propositions
     propositions_df = pd.read_json("data/raw_data/propositions.json")
+    propositions_df = propositions_df[
+        (propositions_df.proposition != "drop")
+        & (propositions_df.proposition != "skip")
+    ]
     add_propositions(
         debates_df=debates_df,
         propositions_df=propositions_df,
