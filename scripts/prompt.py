@@ -40,6 +40,7 @@ def parse_args():
 
     parser.add_argument("--reasoning", type=str, default="false")
     parser.add_argument("--big_issues", type=str, default="false")
+    parser.add_argument("--binary", type=str, default="false")
 
     parser.add_argument("--path_to_file", type=str)
     args = parser.parse_args()
@@ -74,6 +75,7 @@ def who_won(
 
 def proposition_voter(
     task_config,
+    binary: str,
     reasoning: str,
     big_issues: str,
     debates_df: pd.DataFrame,
@@ -85,7 +87,9 @@ def proposition_voter(
     debate_ids: list[int],
     path_to_file: str,
 ):
-    if reasoning == "true":
+    if binary == "true":
+        reason_config = task_config["PropositionVoterRoleBinary"]
+    elif reasoning == "true":
         reason_config = task_config["PropositionVoterReasoning"]
     else:
         reason_config = task_config["PropositionVoterRole"]
@@ -147,6 +151,8 @@ def main():
 
     users_df = pd.read_json(task_config["path_to_users"])
     votes_df = pd.read_json(task_config["path_to_votes"])
+    if args.binary == "true":
+        votes_df = votes_df[votes_df.agreed_before != "Tie"]
     rounds_df = pd.read_json(task_config["path_to_rounds"])
     debates_df = pd.read_json(task_config["path_to_debates_with_title"])
 
@@ -193,6 +199,7 @@ def main():
     if args.q2 == "true":
         proposition_voter(
             task_config=task_config,
+            binary=args.binary,
             reasoning=args.reasoning,
             big_issues=args.big_issues,
             debates_df=debates_df,
