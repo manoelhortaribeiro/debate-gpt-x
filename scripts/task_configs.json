@@ -88,15 +88,26 @@
     "question": "Given the debate, which argument would a person with the following demographics agree with?",
     "constraint": "Evaluate step-by-step the data given in the debate before coming to an answer. Provide your reasoning for selecting an answer and then give your answer in the form of 'Pro', 'Con', or 'Tie' without using any other words or punctuation. Provide your response in the following format: {'reasoning': 'your reasoning goes here', 'answer': 'your answer goes here'}"
   },
-  "PropositionVoter": {
+  "PropositionVoterRole": {
     "context": "Consider the following proposition: ",
     "question": "Respond with 'Pro', 'Con', or 'Tie' based on whether you agree with, disagree with, or are undecided/neutral about the proposition, respectively.",
     "constraint": "Even if you are uncertain, you must answer with either 'Pro', 'Con' or 'Tie' without using any other words or punctuation."
+  },
+  "PropositionVoterRoleBinary": {
+    "context": "Consider the following proposition: ",
+    "question": "Respond with 'Pro' or 'Con'based on whether you agree with or disagree with the proposition, respectively.",
+    "constraint": "Even if you are uncertain, you must answer with either 'Pro' or 'Con' without using any other words or punctuation."
   },
   "PropositionVoterReasoning": {
     "context": "Consider the following proposition: ",
     "question": "Respond with 'Pro', 'Con', or 'Tie' based on whether you agree with, disagree with, or are undecided/neutral about the proposition, respectively.",
     "constraint": "Evaluate step-by-step the data given in the proposition before coming to an answer. Provide your reasoning for selecting an answer and then give your answer in the form of 'Pro', 'Con', or 'Tie' without using any other words or punctuation. Provide your response in the following format: 'Reasoning: your reasoning goes here. Answer: your answer goes here.'"
+  },
+  "PropositionVoter": {
+    "proposition_prefix": "Consider the following proposition: ",
+    "user_prefix": "Consider a person with the following demographics: ",
+    "question": "Respond with 'Pro', 'Con', or 'Tie' based on whether you believe this person would agree with, disagree with, or be undecided/neutral about the proposition, respectively. ",
+    "constraint": "Even if you are uncertain, you must answer with either 'Pro', 'Con' or 'Tie' without using any other words or punctuation. "
   },
   "WhoWon": {
     "role_message": "You are an expert debate judge with experience in determining who in a debate made more convincing arguments.",
