@@ -3,7 +3,7 @@ from typing import Optional
 import numpy as np
 import pandas as pd
 
-from debate_gpt.prompt_classes.openai_prompts.prompt_base import PromptBase
+from debate_gpt.prompt_classes.prompt_base import PromptBase
 
 
 class PropositionVoter(PromptBase):
