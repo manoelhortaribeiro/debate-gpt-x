@@ -7,13 +7,11 @@ import pandas as pd
 
 sys.path.append(".")
 
-from debate_gpt.prompt_classes.openai_prompts.debate_demographics import (  # noqa: E402, E501
+from debate_gpt.prompt_classes.debate_demographics import (  # noqa: E402, E501
     DebateDemographics,
 )
-from debate_gpt.prompt_classes.openai_prompts.proposition_voter import (  # noqa: E402
-    PropositionVoter,
-)
-from debate_gpt.prompt_classes.openai_prompts.who_won import WhoWon  # noqa: E402
+from debate_gpt.prompt_classes.proposition_voter import PropositionVoter  # noqa: E402
+from debate_gpt.prompt_classes.who_won import WhoWon  # noqa: E402
 
 
 def parse_args():
