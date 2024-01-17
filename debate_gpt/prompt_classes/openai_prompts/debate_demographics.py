@@ -16,9 +16,9 @@ class DebateDemographics(PromptBase):
         big_issue_columns: Optional[list[str]] = None,
         demographic_columns: Optional[list[str]] = None,
         demographic_map: Optional[dict[str, str]] = None,
-        max_gpt_response_tokens: Optional[int] = 1000,
+        max_gpt_response_tokens: Optional[int] = 50,
         timeout: int = 120,
-        context_window: int = 16385,
+        source: str = "openai",
         model: str = "gpt-3.5-turbo-1106",
     ) -> None:
         """This class is responsible for holding all the methods related to prompting
@@ -36,7 +36,7 @@ class DebateDemographics(PromptBase):
             voter_results=True,
             max_gpt_response_tokens=max_gpt_response_tokens,
             timeout=timeout,
-            context_window=context_window,
+            source=source,
             model=model,
         )
 
@@ -58,7 +58,7 @@ class DebateDemographics(PromptBase):
             self.context_window
             - base_token_count
             - super().calculate_max_user_info_tokens()
-            - self.max_gpt_response_tokens
+            - (2 * self.max_gpt_response_tokens)
         )
 
     def create_gpt_message(
@@ -69,6 +69,9 @@ class DebateDemographics(PromptBase):
         message = [
             PromptBase.create_individual_gpt_message(
                 "system", self._task_config["role_message"]
+            ),
+            PromptBase.create_individual_gpt_message(
+                "system", self.create_date_cutoff_role_text(debate_id)
             ),
             PromptBase.create_individual_gpt_message(
                 "user", self._task_config["proposition_prefix"]

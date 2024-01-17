@@ -16,7 +16,7 @@ class WhoWon(PromptBase):
         big_issue_columns: Optional[list[str]] = None,
         demographic_columns: Optional[list[str]] = None,
         demographic_map: Optional[dict[str, str]] = None,
-        max_gpt_response_tokens: Optional[int] = 1000,
+        max_gpt_response_tokens: Optional[int] = 10,
         timeout: int = 120,
         source: str = "openai",
         model: str = "gpt-3.5-turbo-1106",
@@ -51,7 +51,7 @@ class WhoWon(PromptBase):
             ]
         )
         max_debate_tokens = (
-            self.context_window - base_token_count - self.max_gpt_response_tokens
+            self.context_window - base_token_count - (2 * self.max_gpt_response_tokens)
         )
         return max_debate_tokens
 
