@@ -10,7 +10,9 @@ sys.path.append(".")
 from debate_gpt.prompt_classes.debate_demographics import (  # noqa: E402, E501
     DebateDemographics,
 )
-from debate_gpt.prompt_classes.proposition_voter import PropositionVoter  # noqa: E402
+from debate_gpt.prompt_classes.proposition_voter_modified import (  # noqa: E402, E501
+    PropositionVoter,
+)
 from debate_gpt.prompt_classes.who_won import WhoWon  # noqa: E402
 
 
@@ -90,7 +92,7 @@ def proposition_voter(
     elif reasoning == "true":
         reason_config = task_config["PropositionVoterReasoning"]
     else:
-        reason_config = task_config["PropositionVoterRole"]
+        reason_config = task_config["PropositionVoter"]
 
     if big_issues == "true":
         big_issues_config = task_config["big_issue_columns"]
@@ -194,6 +196,9 @@ def main():
     # Q2: Can LLMs judge how a person’s demographics and beliefs affect their stance on
     # a topic?
 
+    # models = ["gpt-3.5-turbo-1106", "gpt-4", "llama", "mistral"]
+    # sources = ["openai", "openai", "open", "open"]
+    # path_to_files = ["results/gpt-3.5/q2_new/gpt-3-q2.json", "results/gpt-4/q2_new/gpt-3-q2.json", "results/llama/q2_new/gpt-3-q2.json", "results/mistral/q2_new/gpt-3-q2.json"]
     if args.q2 == "true":
         proposition_voter(
             task_config=task_config,
