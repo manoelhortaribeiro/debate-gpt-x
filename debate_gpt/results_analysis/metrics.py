@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import scipy.stats
+from sklearn.metrics import confusion_matrix
 
 
 def calculate_fleiss_kappa(
@@ -138,3 +139,32 @@ def calculate_precisions(confusion_matrix: np.ndarray) -> list[float]:
 
 def calculate_recalls(confusion_matrix: np.ndarray) -> list[float]:
     return confusion_matrix.diagonal() / confusion_matrix.sum(axis=1)
+
+
+def get_bootstrap(
+    df,
+    true_column: str = "more_convincing_arguments",
+    predict_column: str = "response",
+    num_bootstraps: int = 1000,
+    sample_size: int = 100,
+):
+    cm = confusion_matrix(
+        df[true_column], df[predict_column], labels=["Pro", "Con", "Tie", "other"]
+    )
+    recalls = (cm.diagonal() / cm.sum(axis=1) * 100).round(2)
+    precisions = (cm.diagonal() / cm.sum(axis=0) * 100).round(2)
+    accuracy = 100 * cm.diagonal().sum() / cm.sum()
+
+    statistics = []
+    for _ in range(num_bootstraps):
+        sample = df.sample(sample_size, replace=True)
+        cm = confusion_matrix(sample[true_column], sample[predict_column])
+        acc = cm.diagonal().sum() / cm.sum() * 100
+        statistics.append(acc)
+
+    return (
+        round(accuracy, 2),
+        recalls,
+        precisions,
+        (round(sorted(statistics)[25], 2), round(sorted(statistics)[975], 2)),
+    )
