@@ -10,7 +10,7 @@ sys.path.append(".")
 from debate_gpt.prompt_classes.debate_demographics import (  # noqa: E402, E501
     DebateDemographics,
 )
-from debate_gpt.prompt_classes.proposition_voter_modified import (  # noqa: E402, E501
+from debate_gpt.prompt_classes.proposition_voter import (  # noqa: E402, E501
     PropositionVoter,
 )
 from debate_gpt.prompt_classes.who_won import WhoWon  # noqa: E402
@@ -33,10 +33,9 @@ def parse_args():
     )
 
     parser.add_argument("--debates", type=str, default="full")
-
-    parser.add_argument("--q1", type=str, default="false")
-    parser.add_argument("--q2", type=str, default="false")
-    parser.add_argument("--q3", type=str, default="false")
+    parser.add_argument(
+        "--question", type=str, default="q2", help="Should be q1, q2, or q3"
+    )
 
     parser.add_argument("--reasoning", type=str, default="false")
     parser.add_argument("--big_issues", type=str, default="false")
@@ -196,9 +195,6 @@ def main():
     # Q2: Can LLMs judge how a person’s demographics and beliefs affect their stance on
     # a topic?
 
-    # models = ["gpt-3.5-turbo-1106", "gpt-4", "llama", "mistral"]
-    # sources = ["openai", "openai", "open", "open"]
-    # path_to_files = ["results/gpt-3.5/q2_new/gpt-3-q2.json", "results/gpt-4/q2_new/gpt-3-q2.json", "results/llama/q2_new/gpt-3-q2.json", "results/mistral/q2_new/gpt-3-q2.json"]
     if args.q2 == "true":
         proposition_voter(
             task_config=task_config,

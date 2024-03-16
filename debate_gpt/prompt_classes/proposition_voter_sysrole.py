@@ -47,24 +47,16 @@ class PropositionVoter(PromptBase):
     def create_gpt_message(
         self, debate: str, debate_id: int, voter_id: str
     ) -> list[dict[str, str]]:
+        role_message = self.create_role_text(voter_id, debate_id)
+        if role_message == "":
+            return None
         message = [
+            PromptBase.create_individual_gpt_message("system", role_message),
             PromptBase.create_individual_gpt_message(
-                "system", self._task_config["role_message"]
+                "user", self._task_config["context"]
             ),
             PromptBase.create_individual_gpt_message(
-                "system", self.create_date_cutoff_role_text(debate_id)
-            ),
-            PromptBase.create_individual_gpt_message(
-                "user", self._task_config["proposition_prefix"]
-            ),
-            PromptBase.create_individual_gpt_message(
-                "user", super().get_proposition(debate_id)
-            ),
-            PromptBase.create_individual_gpt_message(
-                "user", self._task_config["user_demographics_prefix"]
-            ),
-            PromptBase.create_individual_gpt_message(
-                "user", super().get_user_info(voter_id)
+                "user", self.get_proposition(debate_id)
             ),
             PromptBase.create_individual_gpt_message(
                 "user", self._task_config["question"]
