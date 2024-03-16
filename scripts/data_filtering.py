@@ -3,7 +3,7 @@ import sys
 import pandas as pd
 
 sys.path.append(".")
-from debate_gpt.data_filtering.filter_data import (  # noqa: E402
+from debate_gpt.data_processing.filter_data import (  # noqa: E402
     add_propositions,
     filter_by_rounds,
     filter_by_votes,
