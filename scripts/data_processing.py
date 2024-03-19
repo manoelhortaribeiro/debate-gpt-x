@@ -1,19 +1,31 @@
 import sys
+import warnings
 
 sys.path.append(".")
 
-from debate_gpt.data_processing.create_comments_df import (  # noqa: E402
+
+from debate_gpt.data_processing.debate_data.create_comments_df import (  # noqa: E402
     create_comments_df,
 )
-from debate_gpt.data_processing.create_debates_df import create_debates_df  # noqa: E402
-from debate_gpt.data_processing.create_rounds_df import create_rounds_df  # noqa: E402
-from debate_gpt.data_processing.create_users_df import create_users_df  # noqa: E402
-from debate_gpt.data_processing.create_votes_df import create_votes_df  # noqa: E402
+from debate_gpt.data_processing.debate_data.create_debates_df import (  # noqa: E402
+    create_debates_df,
+)
+from debate_gpt.data_processing.debate_data.create_rounds_df import (  # noqa: E402
+    create_rounds_df,
+)
+from debate_gpt.data_processing.debate_data.create_users_df import (  # noqa: E402
+    create_users_df,
+)
+from debate_gpt.data_processing.debate_data.create_votes_df import (  # noqa: E402
+    create_votes_df,
+)
+
+warnings.filterwarnings("ignore")
 
 
 def main():
-    PATH_TO_RAW_USERS_DATA = "data/raw_data/users.json"
-    PATH_TO_RAW_DEBATES_DATA = "data/raw_data/debates.json"
+    PATH_TO_RAW_USERS_DATA = "data/processing/raw_data/users.json"
+    PATH_TO_RAW_DEBATES_DATA = "data/processing/raw_data/debates.json"
 
     demographic_columns = [
         "birthday",
@@ -43,11 +55,11 @@ def main():
         ["debate_id", "start_date", "pro_user_id", "con_user_id", "title", "category"]
     ]
 
-    users_df.to_json("data/processed_data/users_df.json")
-    votes_df.to_json("data/processed_data/votes_df.json")
-    comments_df.to_json("data/processed_data/comments_df.json")
-    rounds_df.to_json("data/processed_data/rounds_df.json")
-    debates_df.to_json("data/processed_data/debates_df.json")
+    users_df.to_json("data/processing/processed_data/users_df.json")
+    votes_df.to_json("data/processing/processed_data/votes_df.json")
+    comments_df.to_json("data/processing/processed_data/comments_df.json")
+    rounds_df.to_json("data/processing/processed_data/rounds_df.json")
+    debates_df.to_json("data/processing/processed_data/debates_df.json")
 
 
 if __name__ == "__main__":
