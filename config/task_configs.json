@@ -1,9 +1,13 @@
 {
-  "path_to_users": "data/processed_data/users_df.json",
-  "path_to_votes": "data/filtered_data/votes_filtered_df.json",
-  "path_to_rounds": "data/processed_data/rounds_df.json",
-  "path_to_debates": "data/filtered_data/debates_filtered_df.json",
-  "path_to_debates_with_title": "data/filtered_data/debates_titles.json",
+  "path_to_users": "data/processing/processed_data/users_df.json",
+  "path_to_votes": "data/processing/filtered_data/votes_filtered_df.json",
+  "path_to_rounds": "data/processing/processed_data/rounds_df.json",
+  "path_to_debates": "data/processing/filtered_data/debates_filtered_df.json",
+  "path_to_propositions": "data/processing/filtered_data/propositions.json",
+  "path_to_abortion_props": "data/processing/issues/abortion_props.json",
+  "path_to_gay_props": "data/processing/issues/gay_marriage_props.json",
+  "path_to_capital_props": "data/processing/issues/capital_punishment_props.json",
+  "path_to_issues_props": "data/processing/issues/issues_props.json",
   "demographic_columns": [
     "birthday",
     "education",
@@ -87,6 +91,13 @@
     "user_demographics_prefix": "Now consider a person with the following demographics: ",
     "question": "Respond with 'Pro', 'Con', or 'Tie' based on whether this person would most likely agree with, disagree with, or be undecided/neutral about the proposition, respectively. ",
     "constraint": "Even if you are uncertain, you must answer with either 'Pro', 'Con' or 'Tie' without using any other words or punctuation."
+  },
+  "PropositionVoterBinary": {
+    "role_message": "You are an expert in determining how demographics influence a person's stance on political topics. ",
+    "proposition_prefix": "Consider the following proposition: ",
+    "user_demographics_prefix": "Now consider a person with the following demographics: ",
+    "question": "Respond with 'Pro' or 'Con' based on whether this person would most likely agree or disagree with the proposition, respectively. ",
+    "constraint": "Even if you are uncertain, you must answer with either 'Pro' or 'Con' without using any other words or punctuation."
   },
   "PropositionVoterReasoning": {
     "role_message": "You are an expert in determining how demographics influence a person's stance on political topics. ",

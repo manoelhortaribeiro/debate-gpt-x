@@ -14,6 +14,7 @@ import tqdm
 class PromptBase(ABC):
     def __init__(
         self,
+        propositions_df: pd.DataFrame,
         debates_df: pd.DataFrame,
         rounds_df: Optional[pd.DataFrame],
         votes_df: Optional[pd.DataFrame],
@@ -43,10 +44,11 @@ class PromptBase(ABC):
         """
 
         # set dataframes
-        self._users_df = users_df
+        self._propositions_df = propositions_df
         self._debates_df = debates_df
-        self._votes_df = votes_df
         self._rounds_df = rounds_df
+        self._votes_df = votes_df
+        self._users_df = users_df
 
         # set model info
         self._source = source
@@ -64,6 +66,7 @@ class PromptBase(ABC):
         # set api key
         if source == "openai":
             openai.api_key = os.environ["OPENAI_API_KEY"]
+            self._client = openai.OpenAI()
         else:
             self._client = openai.OpenAI(
                 api_key="anything",
@@ -94,9 +97,9 @@ class PromptBase(ABC):
     def debates_df(self):
         return self._debates_df
 
-    # @debates_df.setter
-    # def debates_df(self, new_debates_df):
-    #     self._debates_df = new_debates_df
+    @property
+    def propositions_df(self):
+        return self._propositions_df
 
     @property
     def context_window(self):
@@ -162,7 +165,7 @@ class PromptBase(ABC):
 
         results.append(
             {
-                "debate_id": debate_id,
+                "debate_id": str(debate_id),
                 "debate_length": length,
                 "message": message,
                 "gpt_response": response.choices[0].message.content,
@@ -196,7 +199,7 @@ class PromptBase(ABC):
 
                 results.append(
                     {
-                        "debate_id": debate_id,
+                        "debate_id": str(debate_id),
                         "voter_id": voter_id,
                         "debate_length": length,
                         "message": message,
@@ -219,7 +222,7 @@ class PromptBase(ABC):
     def get_proposition(self, debate_id: str) -> str:
         """Return the proposition associated with the debate with id `debate_id`."""
         return (
-            self.debates_df[self.debates_df.debate_id == debate_id]
+            self.propositions_df[self.propositions_df.debate_id == debate_id]
             .proposition.values[0]
             .capitalize()
         )
@@ -361,6 +364,15 @@ class PromptBase(ABC):
             col.replace("_", " ").title() + ": " + voter_info[col]
             for col in voter_info.index
         ]
+
+        if self._big_issue_columns:
+            info = self.users_df.loc[voter_id][self._big_issue_columns]
+            info = info[~info.isna()]
+            info = [
+                col.replace("_", " ").title() + ": " + info[col]
+                for col in info.index
+            ]
+            voter_info += info
 
         return "\n".join(voter_info)
 

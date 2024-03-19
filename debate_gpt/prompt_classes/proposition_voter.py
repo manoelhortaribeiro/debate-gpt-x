@@ -10,6 +10,7 @@ class PropositionVoter(PromptBase):
     def __init__(
         self,
         task_config: dict[str, str],
+        propositions_df: pd.DataFrame,
         debates_df: pd.DataFrame,
         rounds_df: pd.DataFrame,
         votes_df: pd.DataFrame,
@@ -22,10 +23,11 @@ class PropositionVoter(PromptBase):
         model: str = "gpt-3.5-turbo",
     ) -> None:
         super().__init__(
-            debates_df,
-            rounds_df,
-            votes_df,
-            users_df,
+            propositions_df=propositions_df,
+            debates_df=debates_df,
+            rounds_df=rounds_df,
+            votes_df=votes_df,
+            users_df=users_df,
             big_issue_columns=big_issue_columns,
             demographic_columns=demographic_columns,
             demographic_map=demographic_map,
