@@ -84,6 +84,37 @@ def who_won(
     )
 
 
+def get_remaining_debates(
+    debate_ids: list[int], path_to_file: str, question: str, votes_df: pd.DataFrame
+):
+    if question == "q1":
+        if os.path.isfile(path_to_file):
+            with open(path_to_file) as f:
+                debate_ids_old = list(pd.read_json(f).debate_id.unique())
+                new_debate_ids = [
+                    debate for debate in debate_ids if debate not in debate_ids_old
+                ]
+        else:
+            return debate_ids
+    else:
+        if os.path.isfile(path_to_file):
+            with open(path_to_file) as f:
+                full_set = set(
+                    votes_df[votes_df.debate_id.isin(debate_ids)]
+                    .groupby(["debate_id", "voter_id"])
+                    .groups.keys()
+                )
+                partial_set = set(
+                    pd.read_json(f).groupby(["debate_id", "voter_id"]).groups.keys()
+                )
+                missing = list(full_set.difference(partial_set))
+                new_debate_ids = list(set([miss[0] for miss in missing]))
+        else:
+            return debate_ids
+
+    return new_debate_ids
+
+
 def proposition_voter(
     task_config,
     binary: str,
@@ -182,14 +213,10 @@ def main():
 
     debate_ids = list(propositions_df.debate_id.unique())
 
-    # TODO: check also if voter id for each debate has been used
     if args.question != "q2_prompts":
-        if os.path.isfile(args.path_to_file):
-            with open(args.path_to_file) as f:
-                debate_ids_old = list(pd.read_json(f).debate_id.unique())
-                debate_ids = [
-                    debate for debate in debate_ids if debate not in debate_ids_old
-                ]
+        debate_ids = get_remaining_debates(
+            debate_ids, args.path_to_file, args.question, votes_df
+        )
 
     # Q1: Can LLMs judge the quality of arguments (compared to humans)?
 
@@ -205,6 +232,7 @@ def main():
             debate_ids=debate_ids,
             path_to_file=args.path_to_file,
         )
+
     # Q2: Can LLMs judge how a person’s demographics and beliefs affect their stance on
     # a topic?
 
@@ -236,14 +264,9 @@ def main():
                     path_to_file += "-bi"
 
                 path_to_file += ".json"
-                if os.path.isfile(args.path_to_file):
-                    with open(args.path_to_file) as f:
-                        debate_ids_old = list(pd.read_json(f).debate_id.unique())
-                        debate_ids_new = [
-                            debate
-                            for debate in debate_ids
-                            if debate not in debate_ids_old
-                        ]
+                debate_ids_new = get_remaining_debates(
+                    debate_ids, args.path_to_file, args.question, votes_df
+                )
                 proposition_voter(
                     task_config=task_config,
                     binary=args.binary,

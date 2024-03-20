@@ -3,11 +3,8 @@
   "path_to_votes": "data/processing/filtered_data/votes_filtered_df.json",
   "path_to_rounds": "data/processing/processed_data/rounds_df.json",
   "path_to_debates": "data/processing/filtered_data/debates_filtered_df.json",
-  "path_to_propositions": "data/processing/filtered_data/propositions.json",
-  "path_to_abortion_props": "data/processing/issues/abortion_props.json",
-  "path_to_gay_props": "data/processing/issues/gay_marriage_props.json",
-  "path_to_capital_props": "data/processing/issues/capital_punishment_props.json",
-  "path_to_issues_props": "data/processing/issues/issues_props.json",
+  "path_to_propositions": "data/processing/propositions/propositions.json",
+  "path_to_issues_props": "data/processing/propositions/issues_props.json",
   "demographic_columns": [
     "birthday",
     "education",
