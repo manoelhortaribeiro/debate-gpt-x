@@ -1,6 +1,102 @@
 import json
+import re
 
 import pandas as pd
+
+
+def majority_vote(row, column):
+    num_pro = (row[column] == "Pro").sum()
+    num_con = (row[column] == "Con").sum()
+    num_tie = (row[column] == "Tie").sum()
+
+    if (num_tie > num_pro) & (num_tie > num_con):
+        return "Tie"
+    elif num_pro > num_con:
+        return "Pro"
+    elif num_con > num_pro:
+        return "Con"
+    elif num_pro == num_con:
+        return "Tie"
+    else:
+        return "else"
+
+
+def create_df(files: list[str]) -> pd.DataFrame:
+    dfs = []
+    for file in files:
+        filename = file.split("/")[-1].split(".json")[0]
+        model = filename.split("-q")[0]
+        df = pd.read_json(file)
+        if "r" in file:
+            df["gpt_response"] = df.gpt_response.apply(
+                lambda x: x.title().split("Answer: ")[-1]
+            )
+        df["model"] = model
+        dfs.append(df)
+
+    return pd.concat(dfs).reset_index(drop=True)
+
+
+def extract_answer(x):
+    x = x.lower()
+    if x == "pro":
+        return "Pro"
+    if x == "con":
+        return "Con"
+    if x == "tie":
+        return "Tie"
+
+    regexp_pro = r"\bpro\b"
+    regexp_con = r"\bcon\b"
+    regexp_tie = r"\btie\b"
+
+    if re.search(regexp_pro, x):
+        if not re.search(regexp_con, x):
+            if not re.search(regexp_tie, x):
+                return "Pro"
+
+    elif re.search(regexp_con, x):
+        if not re.search(regexp_pro, x):
+            if not re.search(regexp_tie, x):
+                return "Con"
+
+    elif re.search(regexp_tie, x):
+        if not re.search(regexp_con, x):
+            if not re.search(regexp_pro, x):
+                return "Tie"
+
+    if (
+        (re.search(regexp_pro, x) is None)
+        & (re.search(regexp_con, x) is None)
+        & (re.search(regexp_tie, x) is None)
+    ):
+        return "Other"
+
+    if ("agree with the ") in x:
+        stance = x.split("agree with the ")[1].split("side")[0]
+        if "pro" in stance:
+            return "Pro"
+        elif "con" in stance:
+            return "Con"
+        elif "tie" in stance:
+            return "Tie"
+
+    if "my answer is " in x:
+        stance = x.split("my answer is ")[1]
+        if "pro" in stance:
+            return "Pro"
+        elif "con" in stance:
+            return "Con"
+        elif "tie" in stance:
+            return "Tie"
+
+    print("\n\n\n", x)
+    replacement = input()
+    print("got")
+    if replacement in ["Pro", "Con", "Tie"]:
+        return replacement
+    else:
+        return "Other"
 
 
 def get_crowd_answer(x):
@@ -33,52 +129,10 @@ def process_crowdsourcing_data(crowd: pd.DataFrame):
     return crowd
 
 
-def majority_vote(row, column):
-    num_pro = (row[column] == "Pro").sum()
-    num_con = (row[column] == "Con").sum()
-    num_tie = (row[column] == "Tie").sum()
-
-    if (num_tie > num_pro) & (num_tie > num_con):
-        return "Tie"
-    elif num_pro > num_con:
-        return "Pro"
-    elif num_con > num_pro:
-        return "Con"
-    elif num_pro == num_con:
-        return "Tie"
-    else:
-        return "else"
-
-
-def process_gpt_response(df: pd.DataFrame):
-    df["correct_form"] = df.gpt_response.isin(["Pro", "Con", "Tie"])
-    df["gpt_response"] = df.gpt_response.apply(
-        lambda x: "Pro" if ("Pro" in x) & ("Con" not in x) & ("Tie" not in x) else x
-    )
-    df["gpt_response"] = df.gpt_response.apply(
-        lambda x: "Con" if ("Con" in x) & ("Pro" not in x) & ("Tie" not in x) else x
-    )
-    df["gpt_response"] = df.gpt_response.apply(
-        lambda x: "Tie" if ("Tie" in x) & ("Pro" not in x) & ("Con" not in x) else x
-    )
-    df["gpt_response"] = df.gpt_response.apply(
-        lambda x: "other" if x not in ["Pro", "Con", "Tie"] else x
-    )
-    df["answer_extracted"] = df.gpt_response.isin(["Pro", "Con", "Tie"])
-
-    return df
-
-
-def get_gpt_response(
-    df: pd.DataFrame, column: str = "gpt_response", reasoning=False
-) -> pd.DataFrame:
-    df = df.reset_index(names="vote_id")
-    if reasoning:
-        df.rename(columns={"gpt_response": "gpt_answer"}, inplace=True)
-        df["gpt_response"] = df.gpt_answer.apply(
-            lambda x: x.title().split("Answer: ")[-1]
-        )
-        df = df.drop(columns="gpt_answer")
-
-    df = process_gpt_response(df)
-    return df
+def get_overlap_sets(dfs):
+    dfs = [df.groupby(["model"]).debate_id.unique() for df in dfs]
+    sets = [el for ls in [[set(sds) for sds in df] for df in dfs] for el in ls]
+    debate_set = sets[0]
+    for sds in sets:
+        debate_set = debate_set.intersection(sds)
+    return list(map(int, debate_set))
