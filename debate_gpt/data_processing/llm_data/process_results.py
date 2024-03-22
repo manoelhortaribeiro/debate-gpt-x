@@ -38,42 +38,43 @@ def create_df(files: list[str]) -> pd.DataFrame:
 
 
 def extract_answer(x):
-    x = x.lower()
-    if x == "pro":
+
+    response = x.gpt_response.lower()
+    if response == "pro":
         return "Pro"
-    if x == "con":
+    if response == "con":
         return "Con"
-    if x == "tie":
+    if response == "tie":
         return "Tie"
 
     regexp_pro = r"\bpro\b"
     regexp_con = r"\bcon\b"
     regexp_tie = r"\btie\b"
 
-    if re.search(regexp_pro, x):
-        if not re.search(regexp_con, x):
-            if not re.search(regexp_tie, x):
+    if re.search(regexp_pro, response):
+        if not re.search(regexp_con, response):
+            if not re.search(regexp_tie, response):
                 return "Pro"
 
-    elif re.search(regexp_con, x):
-        if not re.search(regexp_pro, x):
-            if not re.search(regexp_tie, x):
+    elif re.search(regexp_con, response):
+        if not re.search(regexp_pro, response):
+            if not re.search(regexp_tie, response):
                 return "Con"
 
-    elif re.search(regexp_tie, x):
-        if not re.search(regexp_con, x):
-            if not re.search(regexp_pro, x):
+    elif re.search(regexp_tie, response):
+        if not re.search(regexp_con, response):
+            if not re.search(regexp_pro, response):
                 return "Tie"
 
     if (
-        (re.search(regexp_pro, x) is None)
-        & (re.search(regexp_con, x) is None)
-        & (re.search(regexp_tie, x) is None)
+        (re.search(regexp_pro, response) is None)
+        & (re.search(regexp_con, response) is None)
+        & (re.search(regexp_tie, response) is None)
     ):
         return "Other"
 
-    if ("agree with the ") in x:
-        stance = x.split("agree with the ")[1].split("side")[0]
+    if ("agree with the ") in response:
+        stance = response.split("agree with the ")[1].split("side")[0]
         if "pro" in stance:
             return "Pro"
         elif "con" in stance:
@@ -81,8 +82,8 @@ def extract_answer(x):
         elif "tie" in stance:
             return "Tie"
 
-    if "my answer is " in x:
-        stance = x.split("my answer is ")[1]
+    if "my answer is " in response:
+        stance = response.split("my answer is ")[1]
         if "pro" in stance:
             return "Pro"
         elif "con" in stance:
@@ -90,7 +91,7 @@ def extract_answer(x):
         elif "tie" in stance:
             return "Tie"
 
-    print("\n\n\n", x)
+    print("\n\n", x.debate_id, "\n\n", response)
     replacement = input()
     print("got")
     if replacement in ["Pro", "Con", "Tie"]:

@@ -54,7 +54,7 @@ def prepare_dataframe(
 
     df = create_df(files)
 
-    df["processed_gpt_response"] = df.gpt_response.apply(lambda x: extract_answer(x))
+    df["processed_gpt_response"] = df.apply(lambda x: extract_answer(x), axis=1)
 
     id_cols = ["debate_id", "voter_id"]
     if question == "q1":
@@ -112,7 +112,7 @@ def main():
     parser.add_argument("--prepare_binary", default="false")
     parser.add_argument("--prepare_issues", default="false")
     parser.add_argument("--prepare_datasets", default="false")
-    parser.add_argument("--path_to_files", default="data/tidy/results")
+    parser.add_argument("--path_to_files", default="data/tidy")
 
     args = parser.parse_args()
 
