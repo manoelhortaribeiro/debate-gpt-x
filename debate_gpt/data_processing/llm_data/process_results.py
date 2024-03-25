@@ -21,17 +21,28 @@ def majority_vote(row, column):
         return "else"
 
 
-def create_df(files: list[str]) -> pd.DataFrame:
+def create_df(files: list[str], issues: bool = False) -> pd.DataFrame:
     dfs = []
     for file in files:
         filename = file.split("/")[-1].split(".json")[0]
         model = filename.split("-q")[0]
         df = pd.read_json(file)
-        if "r" in file:
+        if "r" in filename:
             df["gpt_response"] = df.gpt_response.apply(
                 lambda x: x.title().split("Answer: ")[-1]
             )
         df["model"] = model
+        if issues:
+            if "-bi" in filename:
+                df["big_issues"] = True
+            else:
+                df["big_issues"] = False
+
+            if "-r" in filename:
+                df["reasoning"] = True
+            else:
+                df["reasoning"] = False
+
         dfs.append(df)
 
     return pd.concat(dfs).reset_index(drop=True)
@@ -137,3 +148,12 @@ def get_overlap_sets(dfs):
     for sds in sets:
         debate_set = debate_set.intersection(sds)
     return list(map(int, debate_set))
+
+
+def to_stance(row, column):
+    if row[column] == "Pro":
+        return 1
+    elif row[column] == "Con":
+        return -1
+    else:
+        return 0
