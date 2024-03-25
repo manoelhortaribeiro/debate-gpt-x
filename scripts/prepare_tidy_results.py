@@ -12,6 +12,7 @@ from debate_gpt.data_processing.llm_data.process_results import (  # noqa: E402
     get_overlap_sets,
     majority_vote,
     process_crowdsourcing_data,
+    to_stance,
 )
 
 
@@ -48,11 +49,12 @@ def prepare_dataframe(
     crowd_df: pd.DataFrame,
     question: str,
     truth_column: str,
+    issues: bool = False,
 ) -> pd.DataFrame:
 
     ground_truth_df = prepare_ground_truth(votes_df, question, truth_column)
 
-    df = create_df(files)
+    df = create_df(files, issues)
 
     df["processed_gpt_response"] = df.apply(lambda x: extract_answer(x), axis=1)
 
@@ -71,6 +73,8 @@ def prepare_dataframe(
     columns = (
         ["model"] + id_cols + ["gpt_response", "processed_gpt_response", "ground_truth"]
     )
+    if issues:
+        columns += ["big_issues", "reasoning"]
     df = df[columns]
 
     return df
@@ -104,6 +108,38 @@ def prepare_datasets(q1_files, q2_files, q3_files, issues_files):
     return datasets
 
 
+def prepare_regression_dataframes(votes_df, users_df, debates_df, stance_df):
+
+    debate_ids = list(stance_df.debate_id.unique())
+    df = votes_df[votes_df.debate_id.isin(debate_ids)][
+        ["debate_id", "voter_id", "agreed_before"]
+    ]
+
+    # merge df with user demographics
+    users_df = users_df.reset_index().rename(columns={"index": "voter_id"})
+    df = df.merge(users_df, on="voter_id")
+
+    # merge with debates df to add start date for age calculation
+    debates_df["start_date"] = pd.to_datetime(debates_df["start_date"])
+    df = df.merge(debates_df[["debate_id", "start_date"]], on="debate_id")
+
+    # age calculation
+    df["birthday"] = pd.to_datetime(df.birthday)
+    df["age"] = (df.start_date - df.birthday) / pd.Timedelta("365 days")
+    df["age"] = (df.age.max() - df.age) / (df.age.max() - df.age.min())
+    df["age"] = df.age.fillna(df.age.mean())
+
+    df = df.merge(stance_df, on="debate_id")
+
+    df["agreed_before"] = df.apply(lambda x: to_stance(x, "agreed_before"), axis=1)
+    df["stance"] = df.apply(lambda x: to_stance(x, "stance"), axis=1)
+    df["agreed_before"] = df.agreed_before * df.stance
+
+    df = df.drop(columns=["start_date", "proposition", "stance", "birthday"])
+
+    return df
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--prepare_q1", default="false")
@@ -112,7 +148,8 @@ def main():
     parser.add_argument("--prepare_binary", default="false")
     parser.add_argument("--prepare_issues", default="false")
     parser.add_argument("--prepare_datasets", default="false")
-    parser.add_argument("--path_to_files", default="data/tidy")
+    parser.add_argument("--prepare_regression_df", default="false")
+    parser.add_argument("--path_to_files", default="data/tidy/llm_outputs")
 
     args = parser.parse_args()
 
@@ -143,7 +180,7 @@ def main():
 
     if args.prepare_issues == "true":
         files = glob.glob("data/processing/llm_outputs/issues/*.json")
-        df = prepare_dataframe(files, votes_df, crowd_df, "q2", "agreed_before")
+        df = prepare_dataframe(files, votes_df, crowd_df, "q2", "agreed_before", True)
         df.to_json(args.path_to_files + "/issues.json")
 
     if args.prepare_datasets == "true":
@@ -156,6 +193,18 @@ def main():
 
         with open("data/tidy/datasets.json", "w") as f:
             json.dump(datasets, f)
+
+    if args.prepare_regression_df == "true":
+        users_df = pd.read_json("data/processing/processed_data/users_df.json")
+        debates_df = pd.read_json("data/processing/processed_data/debates_df.json")
+        stances = glob.glob("data/processing/propositions/*_props*")
+        for stance in stances:
+            name = stance.split("/")[-1].split("_props")[0]
+            stance_df = pd.read_json(stance)
+            df = prepare_regression_dataframes(
+                votes_df, users_df, debates_df, stance_df
+            )
+            df.to_json(args.path_to_files + "/" + name + ".json")
 
 
 if __name__ == "__main__":
