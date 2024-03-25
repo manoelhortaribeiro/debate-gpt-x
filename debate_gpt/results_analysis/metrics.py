@@ -1,7 +1,11 @@
+import warnings
+
 import numpy as np
 import pandas as pd
 import scipy.stats
 from sklearn.metrics import confusion_matrix
+
+warnings.filterwarnings("ignore")
 
 
 def calculate_fleiss_kappa(
@@ -129,31 +133,20 @@ def calculate_cohens_kappa(
     return cohens_kappa, cohens_kappa_lb, cohens_lappa_ub
 
 
-def calculate_accuracy(confusion_matrix: np.ndarray) -> float:
-    return confusion_matrix.diagonal().sum() / confusion_matrix.sum()
-
-
-def calculate_precisions(confusion_matrix: np.ndarray) -> list[float]:
-    return confusion_matrix.diagonal() / confusion_matrix.sum(axis=0)
-
-
-def calculate_recalls(confusion_matrix: np.ndarray) -> list[float]:
-    return confusion_matrix.diagonal() / confusion_matrix.sum(axis=1)
-
-
 def get_bootstrap(
     df,
-    true_column: str = "more_convincing_arguments",
-    predict_column: str = "response",
+    true_column: str = "ground_truth",
+    predict_column: str = "processed_gpt_response",
     num_bootstraps: int = 1000,
-    sample_size: int = 100,
 ):
+    sample_size = len(df)
     cm = confusion_matrix(
-        df[true_column], df[predict_column], labels=["Pro", "Con", "Tie", "other"]
+        df[true_column], df[predict_column], labels=["Pro", "Con", "Tie"]
     )
     recalls = (cm.diagonal() / cm.sum(axis=1) * 100).round(2)
+
     precisions = (cm.diagonal() / cm.sum(axis=0) * 100).round(2)
-    accuracy = 100 * cm.diagonal().sum() / cm.sum()
+    accuracy = 100 * (cm.diagonal().sum() / cm.sum())
 
     statistics = []
     for _ in range(num_bootstraps):
