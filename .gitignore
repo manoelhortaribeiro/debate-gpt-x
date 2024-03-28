@@ -3,3 +3,4 @@
 **/.config/**
 **/results/**
 **.DS_STORE**
+**/latex_tables/** 
