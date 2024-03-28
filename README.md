@@ -53,3 +53,10 @@ The `tidy/` folder contains the data in its final form that is directly used for
     - `q2-issues.json`: all the llm outputs for research question 2 with the issues datasets including whether the input contained big issues and whether the output contained reasoning
     - `q3.json`: all the llm outputs for research question 3
 - `regression_files` contains many files each containing a dataframe stored in json format for use in a traditional regression. 
+
+
+## Reproduce Results
+
+In order to reproduce our results, only the data in `tidy.zip` on Zenodo is needed (see [Data](#data)).
+All the analysis is done directly in the notebook [`analyses.ipynb`](analyses/analyses.ipynb).
+Some helper functions are required to run this notebook and are all contained in our debate-gpt package in the file [`analysis_helpers.py`](debate_gpt/results_analysis/analysis_helpers.py).
