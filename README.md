@@ -1,4 +1,4 @@
-# debate-gpt
+# Data and Code for: "Can Language Models Recognize Convincing Arguments?"
 
 ## Reproduce Results
 
@@ -8,7 +8,7 @@ Some helper functions are required to run this notebook and are all contained in
 
 ## Data
 
-Data for this work is available through [Zenodo]().
+Data for this work is available through [Zenodo](https://zenodo.org/records/13887286).
 
 ### Raw Data
 
